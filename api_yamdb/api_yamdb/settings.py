@@ -1,7 +1,11 @@
 from pathlib import Path
 
+<<<<<<< HEAD
 import os 
 
+=======
+import os
+>>>>>>> develop
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -25,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'users.apps.UsersConfig',
+    'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',
 ]
 
@@ -69,7 +74,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'users.User'
+# AUTH_USER_MODEL = 'users.User'
 
 # Password validation
 
