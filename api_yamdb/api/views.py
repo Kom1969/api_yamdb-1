@@ -16,6 +16,9 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
+    def perform_create(self, serializer):
+        serializer.save()
+
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Genre.objects.all()
@@ -25,6 +28,9 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
+    def perform_create(self, serializer):
+        serializer.save()
+
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
@@ -32,3 +38,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (ForAnybody, )
     pagination_class = LimitOffsetPagination
     # тут тоже нужен фильтр
+
+    def perform_create(self, serializer):
+        serializer.save()
