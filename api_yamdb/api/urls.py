@@ -1,30 +1,16 @@
-<<<<<<< HEAD
 from django.urls import include, path
-from rest_framework import routers
-
-
-v1_router = routers.DefaultRouter()
-# Дописать урлы.
-
-urlpatterns = [
-    # path('v1/', include('djoser.urls')),  # Переделаю
-    # path('v1/', include('djoser.urls.jwt')),  # Переделаю
-    path('v1/', include(v1_router.urls)),
-=======
-﻿from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import CategoryViewSet, GenreViewSet, TitleViewSet
 
-router = DefaultRouter()
+v1_router = DefaultRouter()
 
-router.register('categories', CategoryViewSet, basename='category')
-router.register('genres', GenreViewSet, basename='genre')
-router.register('titles', TitleViewSet, basename='title')
+v1_router.register('categories', CategoryViewSet, basename='category')
+v1_router.register('genres', GenreViewSet, basename='genre')
+v1_router.register('titles', TitleViewSet, basename='title')
 
 urlpatterns = [
-    path('api/v1/', include(router.urls)),
-    path('api/v1/', include('djoser.urls')),
-    path('api/v1/', include('djoser.urls.jwt')),
->>>>>>> tasks/task_2
+    path('v1/', include(v1_router.urls)),
+    path('v1/', include('djoser.urls')),
+    path('v1/', include('djoser.urls.jwt')),
 ]
