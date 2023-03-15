@@ -1,4 +1,4 @@
-from rest_framework import permissions, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 # Create your views here.
@@ -13,9 +13,8 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = (ForAnybody,)  # потом - IsAdminUser ???
     pagination_class = LimitOffsetPagination
-
-    def perform_create(self, serializer):
-        serializer.save()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -23,9 +22,8 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GenreSerializer
     permission_classes = (ForAnybody, )  # (permissions.AllowAny,)
     pagination_class = LimitOffsetPagination
-
-    def perform_create(self, serializer):
-        serializer.save()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -33,6 +31,3 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (ForAnybody, )
     pagination_class = LimitOffsetPagination
-
-    def perform_create(self, serializer):
-        serializer.save()
