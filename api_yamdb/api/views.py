@@ -31,3 +31,4 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (ForAnybody, )
     pagination_class = LimitOffsetPagination
+    # тут тоже нужен фильтр
