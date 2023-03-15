@@ -4,7 +4,6 @@ from users.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
-<<<<<<< HEAD
 class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True)
@@ -56,9 +55,6 @@ class GenreTitle(models.Model):
 
     def __str__(self):
         return f'{self.title} {self.genre}'
-=======
-class Title(models.Model):
-    pass
 
 
 class Review(models.Model):
@@ -101,4 +97,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
->>>>>>> tasks/task_3
