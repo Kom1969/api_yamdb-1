@@ -19,7 +19,7 @@ class Review(models.Model):
         related_name="reviews",
     )
     rate = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(10)]
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
     
     class Meta:

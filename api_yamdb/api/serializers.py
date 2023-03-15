@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
 
-from reviews.models import Review, Comment, User
+from reviews.models import Review, Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -17,28 +16,37 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
         default=serializers.CurrentUserDefault()
     )
-    following = serializers.SlugRelatedField(
-        slug_field='username',
-        queryset=User.objects.all()
+    title = serializers.SlugRelatedField(
+        slug_field='name',
+        read_only=True
     )
 
     class Meta:
         fields = '__all__'
         model = Review
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=['user', 'following']
-            )
-        ]
+       
+    def validate(self, data):
+        if self.context['request'].method != 'POST':
+            return data
 
-    def validate_following(self, data):
-        if data == self.context['request'].user:
+        title_id = self.context['view'].kwargs.get('title_id')
+        author = self.context['request'].user
+        if Review.objects.filter(
+                author=author, title=title_id).exists():
             raise serializers.ValidationError(
-                'Подписываться на себя нельзя!')
+                'Отзыв уже существует,'
+                'допустимо не более 1 отзыва на произведение.'
+            )
         return data
+    
+    def validate_rate(self, rate):
+        if rate < 1 or rate > 10:
+            raise serializers.ValidationError(
+                'Рейтинг произведения должен быть от 1 до 10')
+        return rate
+    
