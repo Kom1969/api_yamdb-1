@@ -1,7 +1,14 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
 from users.models import User
+
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('id', 'username', 'first_name', 'last_name', 'email', 'role', 'bio', 'confirmation_code')
+    list_editable = ('role', 'email')
+    search_fields = ('id', 'username',)
+    list_filter = ('username',)
+    empty_value_display = '-пусто-'
 
 
 admin.site.register(User, UserAdmin)

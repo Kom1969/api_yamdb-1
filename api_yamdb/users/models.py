@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 
@@ -32,6 +33,10 @@ class User(AbstractUser):
         verbose_name='Электронная почта',
         help_text='Электронная почта',
         unique=True,
+    )
+    confirmation_code = models.CharField(
+        max_length=32,
+        blank=True,
     )
 
     @property
