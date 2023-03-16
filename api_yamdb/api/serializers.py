@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-
+from django.conf import settings
 from reviews.models import Category, Genre, Title, Review, Comment
 
 
@@ -76,7 +76,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
     
     def validate_rate(self, rate):
-        if rate < 1 or rate > 10:
+        if rate < settings.RATE_ONE or rate > settings.RATE_TEN:
             raise serializers.ValidationError(
                 'Рейтинг произведения должен быть от 1 до 10')
         return rate
