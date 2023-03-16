@@ -1,12 +1,14 @@
 import uuid
+import django_filters
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from rest_framework import filters, permissions, viewsets, mixins, status
+from rest_framework import filters, viewsets, mixins, status
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -14,44 +16,57 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from reviews.models import Category, Genre, Title, Review
 from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
 from api.serializers import (CategorySerializer, GenreSerializer,
-                             TitleSerializer, CommentSerializer, ReviewSerializer, TokenSerializer,
-                             SignUpSerializer, AdminUserSerializer, UserSerializer, UserSelfSerializer)
+                             TitleSerializer, TitleCreateSerializer,
+                             CommentSerializer,
+                             ReviewSerializer, TokenSerializer,
+                             SignUpSerializer, AdminUserSerializer,
+                             UserSerializer, UserSelfSerializer)
 from users.models import User
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class TitleFilter(django_filters.FilterSet):
+    genre = django_filters.CharFilter(field_name='genre__slug')
+    category = django_filters.CharFilter(field_name='category__slug')
+    year = django_filters.NumberFilter(field_name='year')
+    name = django_filters.CharFilter(field_name='name', lookup_expr='contains')
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+
+# Почему ReadOnlyViewSet? Как тогда админ будет добавлять
+# новые категории/жанры?
+class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdmin | ReadOnly,)  # потом - IsAdminUser ???
+    # AllowAny - для тестирования
+    permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
-    def perform_create(self, serializer):
-        serializer.save()
 
-
-class GenreViewSet(viewsets.ReadOnlyModelViewSet):
+class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdmin | ReadOnly,)  # (permissions.AllowAny,)
+    # AllowAny - для тестирования
+    permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-
-    def perform_create(self, serializer):
-        serializer.save()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
-    # тут тоже нужен фильтр
+    filterset_class = TitleFilter
 
-    def perform_create(self, serializer):
-        serializer.save()
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH', 'PUT'):
+            return TitleCreateSerializer
+        return TitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
