@@ -80,7 +80,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
     
     def validate_rate(self, rate):
-        if rate < settings.RATE_ONE or rate > settings.RATE_TEN:
+        if (rate < settings.REVIEW_RATE_ONE
+                or rate > settings.REVIEW_RATE_TEN):
             raise serializers.ValidationError(
                 'Рейтинг произведения должен быть от 1 до 10')
         return rate

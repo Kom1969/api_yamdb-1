@@ -129,7 +129,6 @@ class UserSelfView(APIView):
 
 
 class SignUpAPIView(APIView):
-    permission_classes = (AllowAny,)
     serializer_class = SignUpSerializer
 
     def post(self, request):
