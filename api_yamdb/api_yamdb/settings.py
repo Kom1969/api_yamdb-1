@@ -130,3 +130,6 @@ SIMPLE_JWT = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+RATE_ONE = 1
+RATE_TEN = 10
