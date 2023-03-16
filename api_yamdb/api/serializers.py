@@ -1,7 +1,11 @@
-from rest_framework import serializers
+import uuid
+
+from django.core.mail import send_mail
+from rest_framework import serializers, exceptions
 from rest_framework.relations import SlugRelatedField
 from django.conf import settings
 from reviews.models import Category, Genre, Title, Review, Comment
+from users.models import User, ROLES
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -80,3 +84,66 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Рейтинг произведения должен быть от 1 до 10')
         return rate
+
+
+class UserSerializer(serializers.ModelSerializer):
+    role = serializers.ChoiceField(choices=ROLES, default='user')
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role')
+
+    def create(self, validated_data):
+        if validated_data['username'] == 'me':
+            error = {'username': ['Нельзя создать пользователя с username me']}
+            raise exceptions.ValidationError(error)
+        return super().create(validated_data)
+
+
+class UserSelfSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role')
+        read_only_fields = ('username', 'email', 'role')
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
+        )
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+    def create(self, validated_data):
+        confirmation_code = str(uuid.uuid4())
+        if validated_data['username'] == 'me':
+            error = {'username': ['Нельзя создать пользователя с username me']}
+            raise exceptions.ValidationError(error)
+        user = User.objects.create_user(
+            confirmation_code=confirmation_code, **validated_data)
+        send_mail(
+            subject='Код подтверждения для YAMDB',
+            message=confirmation_code,
+            from_email="admin@admin.ru",
+            recipient_list=[validated_data.get('email')]
+        )
+        user.save()
+        return user
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')

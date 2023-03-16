@@ -29,7 +29,7 @@ class Title(models.Model):
         null=True,
         blank=True,
     )
-    genre = models.ManyToManyField( # many-to-many
+    genre = models.ManyToManyField(  # many-to-many
         Genre,
         through='GenreTitle',)
     category = models.ForeignKey(
