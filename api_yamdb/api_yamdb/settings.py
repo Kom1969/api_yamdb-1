@@ -6,6 +6,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Constants
 USER_ROLE_MAX_LENGTH = 13
+REVIEW_RATE_ONE = 1
+REVIEW_RATE_TEN = 10
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
@@ -130,6 +133,3 @@ SIMPLE_JWT = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-RATE_ONE = 1
-RATE_TEN = 10
