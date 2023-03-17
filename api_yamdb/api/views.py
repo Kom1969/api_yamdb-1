@@ -117,34 +117,36 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(
             request.user, data=request.data, partial=True
         )
-        if serializer.is_valid():
-            if serializer.validated_data.get('role'):
-                serializer.validated_data['role'] = request.user.role
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if serializer.validated_data.get('role'):
+            serializer.validated_data['role'] = request.user.role
+        serializer.save()
+        return Response(serializer.data)
 
 
 class SignUpView(APIView):
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            username = serializer.validated_data['username']
-            user, mail = User.objects.get_or_create(
-                email=email,
-                username=username
-            )
-            confirmation_code = default_token_generator.make_token(user)
-            message = f'Код доступа к YaMDB: {confirmation_code}'
-            send_mail('Завершение регистрации',
-                      message, settings.DEFAULT_FROM_EMAIL, (email,))
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
+        user, mail = User.objects.get_or_create(
+            email=email,
+            username=username
+        )
+        confirmation_code = default_token_generator.make_token(user)
+        message = f'Код доступа к YaMDB: {confirmation_code}'
+        send_mail('Завершение регистрации',
+                  message, settings.DEFAULT_FROM_EMAIL, (email,))
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
 
 
 class TokenView(APIView):
