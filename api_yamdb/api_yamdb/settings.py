@@ -1,7 +1,16 @@
+from datetime import timedelta
 from pathlib import Path
 
-import os
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Constants
+USER_ROLE_MAX_LENGTH = 13
+REVIEW_MIN_SCORE = 1
+REVIEW_MAX_SCORE = 10
+USERNAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 254
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
@@ -21,10 +30,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'django_filters',
-    'users.apps.UsersConfig',
+    'rest_framework',
+    'rest_framework_simplejwt',
     'api.apps.ApiConfig',
+    'reviews.apps.ReviewsConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -90,7 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'UTC'
 
@@ -106,3 +117,31 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADERS_TYPES': ('Bearer',),
+}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Представим, что это спрятано в .env
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_USE_TSL = False
+EMAIL_USE_SSL = True
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'irs1992'
+EMAIL_HOST_PASSWORD = 'mrxhkkowefhtbcml'
+DEFAULT_FROM_EMAIL = 'dev@koyote92.ru'
