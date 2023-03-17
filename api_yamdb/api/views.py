@@ -35,13 +35,10 @@ class TitleFilter(django_filters.FilterSet):
         fields = '__all__'
 
 
-# Почему ReadOnlyViewSet? Как тогда админ будет добавлять
-# новые категории/жанры?
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # AllowAny - для тестирования
-    permission_classes = (IsAdmin | ReadOnly,)
+    # permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -50,8 +47,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # AllowAny - для тестирования
-    permission_classes = (IsAdmin | ReadOnly,)
+    # permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -59,7 +55,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    permission_classes = (IsAdmin | ReadOnly,)
+    # permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filterset_class = TitleFilter
 

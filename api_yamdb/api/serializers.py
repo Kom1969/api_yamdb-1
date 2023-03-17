@@ -20,7 +20,15 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
+class ObjectField(serializers.SlugRelatedField):
+
+    def to_representation(self, obj):
+        return {'name': obj.name,
+                'slug': obj.slug}
+
+
 class TitleCreateSerializer(serializers.ModelSerializer):
+    '''
     category = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all(),
@@ -29,6 +37,17 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Genre.objects.all(),
         many=True
+    )
+    '''
+    genre = ObjectField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True
+    )
+    category = ObjectField(
+        slug_field='slug',
+        queryset=Category.objects.all(),
+        # many=False
     )
 
     class Meta:
