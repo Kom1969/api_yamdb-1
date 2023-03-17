@@ -1,25 +1,30 @@
 import django_filters
-
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.conf import settings
+from rest_framework.views import APIView
 
-from reviews.models import Category, Genre, Title, Review
 from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
-from api.serializers import (CategorySerializer, GenreSerializer,
-                             TitleSerializer, TitleCreateSerializer,
-                             CommentSerializer,
-                             ReviewSerializer, TokenSerializer,
-                             SignUpSerializer, UserSerializer)
+from api.serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    SignUpSerializer,
+    TokenSerializer,
+    TitleSerializer,
+    TitleCreateSerializer,
+    UserSerializer
+)
+from reviews.models import Category, Genre, Title, Review
 from users.models import User
 
 

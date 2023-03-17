@@ -1,9 +1,11 @@
+from django.conf import settings
 from django.db.models import Avg
-from rest_framework import serializers, exceptions
+from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+
+from api.validators import username_validator, signup_validator, score_validator
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
-from api.validators import username_validator, signup_validator
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -102,11 +104,15 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
+        validators = [score_validator]
 
+    # Не могу допереть, как эту валидацию
+    # правильно перенести в validators.py
+    # из-за self
     def validate(self, data):
         if self.context['request'].method != 'POST':
             return data
-
+#
         title_id = self.context['view'].kwargs.get('title_id')
         author = self.context['request'].user
         if Review.objects.filter(
@@ -117,16 +123,10 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return data
 
-    def validate_score(self, score):
-        if score < 1 or score > 10:
-            raise serializers.ValidationError(
-                'Рейтинг произведения должен быть от 1 до 10')
-        return score
-
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
         validators=[
             username_validator,
@@ -149,11 +149,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        max_length=150,
+        max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
         validators=[username_validator],
     )
-    email = serializers.EmailField(max_length=254)
+    email = serializers.EmailField(max_length=settings.EMAIL_MAX_LENGTH)
 
     class Meta:
         model = User

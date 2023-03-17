@@ -6,8 +6,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Constants
 USER_ROLE_MAX_LENGTH = 13
-REVIEW_RATE_ONE = 1
-REVIEW_RATE_TEN = 10
+REVIEW_MIN_VALUE = 1
+REVIEW_MAX_VALUE = 10
+USERNAME_MAX_LENGTH = 150
+EMAIL_MAX_LENGTH = 254
 
 
 # SECURITY WARNING: keep the secret key used in production secret!

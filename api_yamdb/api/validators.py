@@ -1,4 +1,5 @@
 import re
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from users.models import User
@@ -19,4 +20,12 @@ def signup_validator(data):
         raise ValidationError('s')
     if not User.objects.filter(email=email).exists() and User.objects.filter(username=username).exists():
         raise ValidationError('s')
+    return data
+
+
+def score_validator(data):
+    score = data['score']
+    if score < settings.REVIEW_MIN_VALUE or score > settings.REVIEW_MAX_VALUE:
+        raise ValidationError(
+            'Рейтинг произведения должен быть от 1 до 10')
     return data
