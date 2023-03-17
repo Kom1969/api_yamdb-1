@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from django.conf import settings
 
 from reviews.models import Category, Genre, Title, Review
-from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
+from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly, IsAdminAndDelete
 from api.serializers import (CategorySerializer, GenreSerializer,
                              TitleSerializer, TitleCreateSerializer,
                              CommentSerializer,
@@ -41,6 +41,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+'''
+    def perform_destroy(self, instance):
+        if not self.request.user.is_staff:
+            raise PermissionDenied("You are not allowed to delete this object.")
+        instance.delete()
+'''
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -57,6 +63,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filterset_class = TitleFilter
+    filter_backends = (DjangoFilterBackend, )
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH', 'PUT'):
