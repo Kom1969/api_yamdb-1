@@ -5,8 +5,10 @@ from django.core.mail import send_mail
 from rest_framework import serializers, exceptions
 from rest_framework.relations import SlugRelatedField
 from django.conf import settings
+from rest_framework.validators import UniqueValidator
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User, ROLES
+from api.validators import validate_username
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -160,30 +162,32 @@ class AdminUserSerializer(serializers.ModelSerializer):
 
 # В процессе.
 class SignUpSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            validate_username,
+            UniqueValidator(queryset=User.objects.all()),
+        ]
+    )
+
     class Meta:
         model = User
         fields = ('username', 'email')
-
-    def create(self, validated_data):
-        if validated_data['username'] == 'me':
-            error = {'username': ['Нельзя создать пользователя с username me']}
-            raise exceptions.ValidationError(error)
-        user = User.objects.create_user(**validated_data)
-        send_mail(
-            subject='Код подтверждения для YAMDB',
-            message='123',
-            from_email="admin@admin.ru",
-            recipient_list=[validated_data.get('email')]
-        )
-        user.save()
-        return user
+        lookup_field = 'username'
 
 
 # В процессе.
 class TokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+    )
     confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'confirmation_code')
+        fields = (
+            'username',
+            'confirmation_code'
+        )

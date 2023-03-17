@@ -44,24 +44,6 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == MODERATOR
 
-    @property
-    def confirmation_code(self):
-        return self._generate_jwt_token()
-
-    def _generate_jwt_token(self):
-        dt = datetime.utcnow() + timedelta(days=1)
-
-        confirmation_code = jwt.encode(
-            {
-                'id': self.pk,
-                'exp': int(dt.strftime('%f')),
-            },
-            settings.SECRET_KEY,
-            algorithm='HS256',
-        )
-
-        return confirmation_code
-
     class Meta:
         ordering = ('username',)
         verbose_name = 'Пользователь'

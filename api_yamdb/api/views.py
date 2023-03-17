@@ -1,16 +1,17 @@
 import uuid
 import django_filters
 
+from django.db import IntegrityError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from rest_framework import filters, viewsets, mixins, status
+from rest_framework import filters, viewsets, mixins, status, serializers
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from reviews.models import Category, Genre, Title, Review
@@ -100,7 +101,7 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     lookup_field = 'username'
-    lookup_value_regex = r'[\w\@\.\+\-]+'
+    # lookup_value_regex = r'[\w\@\.\+\-]+'
 
     @action(
         detail=False,
@@ -142,40 +143,114 @@ class UserSelfView(APIView):
 
 
 # В процессе.
-class SignUpAPIView(APIView):
-    serializer_class = SignUpSerializer
+class SignUpView(APIView):
 
     def post(self, request):
-        if not User.objects.filter(**request.data).exists():
-            serializer = self.serializer_class(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = SignUpSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            username = serializer.validated_data['username']
+            user, mail = User.objects.get_or_create(
+                email=email,
+                username=username
+            )
+            confirmation_code = default_token_generator.make_token(user)
+            message = (
+                f'Ваш код: {confirmation_code}\n'
+                'Перейдите по адресу '
+                'http://127.0.0.1:8000/api/v1/auth/token/ и введите его '
+                'вместе со своим username'
+            )
+            send_mail(
+                'Завершение регистрации',
+                message,
+                'webmaster@localhost',
+                [email, ],
+                fail_silently=True
+            )
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.get(**request.data)
-        user.save()
-        send_mail(
-            subject='Код подтверждения для YAMDB',
-            message=user.confirmation_code,
-            from_email="admin@admin.ru",
-            recipient_list=[request.data.get('email')],
+
+# @api_view(['POST'])
+# def signup_user(request):
+#     serializer = SignUpSerializer(data=request.data)
+#     serializer.is_valid(raise_exception=True)
+#
+#     email = serializer.validated_data['email']
+#     username = serializer.validated_data['username']
+#     try:
+#         user, _ = User.objects.get_or_create(
+#             email=email,
+#             username=username
+#         )
+#     except IntegrityError:
+#         raise serializers.ValidationError('Такой пользователь уже существует')
+#
+#     confirmation_code = default_token_generator.make_token(user)
+#
+#     message = (
+#         f'Ваш код: {confirmation_code}\n'
+#         'Перейдите по адресу '
+#         'http://127.0.0.1:8000/api/v1/auth/token/ и введите его '
+#         'вместе со своим username'
+#     )
+#
+#     send_mail(
+#         'Завершение регистрации',
+#         message,
+#         'webmaster@localhost',
+#         [email, ],
+#         fail_silently=True
+#     )
+#     return Response(
+#         serializer.data,
+#         status=status.HTTP_200_OK
+#     )
+#
+
+class ObtainTokenView(APIView):
+
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        if serializer.is_valid():
+            confirmation_code = serializer.validated_data['confirmation_code']
+            username = serializer.validated_data['username']
+            user = get_object_or_404(User, username=username)
+
+            if default_token_generator.check_token(user, confirmation_code):
+                access = AccessToken.for_user(user)
+                return Response(
+                    {
+                        'token': f'Bearer {access}',
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
         )
 
-        return Response(request.data, status=status.HTTP_200_OK)
-
-
-# В процессе.
-class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = TokenSerializer
-
-    def post(self, request, *args, **kwargs):
-        if not User.objects.filter(**request.data).exists():
-            serializer = self.serializer_class(data=request.data)
-            if serializer.is_valid():
-                return Response(serializer.errors,
-                                status=status.HTTP_404_NOT_FOUND)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-        return Response(request.data, status=status.HTTP_200_OK)
+# @api_view(['POST'])
+# def get_token(request):
+#     serializer = TokenSerializer(data=request.data)
+#     if serializer.is_valid():
+#         confirmation_code = serializer.validated_data['confirmation_code']
+#         username = serializer.validated_data['username']
+#         user = get_object_or_404(User, username=username)
+#
+#         if default_token_generator.check_token(user, confirmation_code):
+#             access = AccessToken.for_user(user)
+#             return Response(
+#                 {
+#                     'token': f'Bearer {access}',
+#                 },
+#                 status=status.HTTP_201_CREATED
+#             )
+#     return Response(
+#         serializer.errors,
+#         status=status.HTTP_400_BAD_REQUEST
+#     )

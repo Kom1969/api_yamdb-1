@@ -67,7 +67,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name="reviews",
     )
-    rate = models.IntegerField(
+    score = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
 
