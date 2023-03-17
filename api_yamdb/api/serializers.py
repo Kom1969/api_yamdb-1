@@ -3,7 +3,7 @@ import uuid
 from django.core.mail import send_mail
 from rest_framework import serializers, exceptions
 from rest_framework.relations import SlugRelatedField
-from django.conf import settings
+
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User, ROLES
 
@@ -47,7 +47,6 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
-        read_only_fields = ('post',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -80,8 +79,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
     
     def validate_rate(self, rate):
-        if (rate < settings.REVIEW_RATE_ONE
-                or rate > settings.REVIEW_RATE_TEN):
+        if rate < 1 or rate > 10:
             raise serializers.ValidationError(
                 'Рейтинг произведения должен быть от 1 до 10')
         return rate
