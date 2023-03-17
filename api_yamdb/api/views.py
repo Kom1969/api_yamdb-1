@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+from django.conf import settings
 
 from reviews.models import Category, Genre, Title, Review
 from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
@@ -132,7 +133,8 @@ class SignUpView(APIView):
             )
             confirmation_code = default_token_generator.make_token(user)
             message = f'Код доступа к YaMDB: {confirmation_code}'
-            send_mail('Завершение регистрации', message, 'webmaster@localhost', (email,))
+            send_mail('Завершение регистрации',
+                      message, settings.DEFAULT_FROM_EMAIL, (email,))
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK

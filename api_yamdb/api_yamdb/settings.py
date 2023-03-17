@@ -133,3 +133,12 @@ SIMPLE_JWT = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_USE_TSL = False
+EMAIL_USE_SSL = True
+EMAIL_PORT = 465
+EMAIL_HOST_USER = 'irs1992'
+EMAIL_HOST_PASSWORD = 'mrxhkkowefhtbcml'
+DEFAULT_FROM_EMAIL = 'dev@koyote92.ru'
