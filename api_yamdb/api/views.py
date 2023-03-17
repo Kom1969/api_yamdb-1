@@ -1,20 +1,19 @@
 import django_filters
-
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.conf import settings
+from rest_framework.views import APIView
 
 from reviews.models import Category, Genre, Title, Review
-from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly, IsAdminAndDelete
+from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
 from api.serializers import (CategorySerializer, GenreSerializer,
                              TitleSerializer, TitleCreateSerializer,
                              CommentSerializer,
@@ -119,34 +118,35 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(
             request.user, data=request.data, partial=True
         )
-        if serializer.is_valid():
-            if serializer.validated_data.get('role'):
-                serializer.validated_data['role'] = request.user.role
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if serializer.validated_data.get('role'):
+            serializer.validated_data['role'] = request.user.role
+        serializer.save()
+        return Response(serializer.data)
 
 
 class SignUpView(APIView):
 
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            username = serializer.validated_data['username']
-            user, mail = User.objects.get_or_create(
-                email=email,
-                username=username
-            )
-            confirmation_code = default_token_generator.make_token(user)
-            message = f'Код доступа к YaMDB: {confirmation_code}'
-            send_mail('Завершение регистрации',
-                      message, settings.DEFAULT_FROM_EMAIL, (email,))
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
+        user, mail = User.objects.get_or_create(
+            email=email,
+            username=username
+        )
+        confirmation_code = default_token_generator.make_token(user)
+        message = f'Код доступа к YaMDB: {confirmation_code}'
+        send_mail('Завершение регистрации',
+                  message, settings.DEFAULT_FROM_EMAIL, (email,))
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
 
 
 class TokenView(APIView):
