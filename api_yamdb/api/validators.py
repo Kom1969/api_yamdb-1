@@ -10,7 +10,7 @@ def username_validator(data):
         raise ValidationError('Использование юзернейма "me" запрещено.')
 
     if not re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$', data):
-        raise ValidationError('Вы можете использовать только буквы, цифры и нижнее подчёркивание.')
+        raise ValidationError('Вы не можете использовать спецсимволы в юзернейме.')
 
 
 def signup_validator(data):
