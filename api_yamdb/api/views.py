@@ -38,7 +38,7 @@ class TitleFilter(django_filters.FilterSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    # permission_classes = (IsAdmin | ReadOnly,)
+    permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -47,7 +47,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # permission_classes = (IsAdmin | ReadOnly,)
+    permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -55,7 +55,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    # permission_classes = (IsAdmin | ReadOnly,)
+    permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filterset_class = TitleFilter
 
