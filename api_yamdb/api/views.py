@@ -148,7 +148,6 @@ class SignUpView(APIView):
         )
 
 
-
 class TokenView(APIView):
 
     def post(self, request):
