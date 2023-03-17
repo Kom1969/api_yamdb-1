@@ -80,6 +80,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
+# В процессе.
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
@@ -111,6 +112,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+# В процессе.
 class UserSelfView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -128,6 +130,7 @@ class UserSelfView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# В процессе.
 class SignUpAPIView(APIView):
     serializer_class = SignUpSerializer
 
@@ -141,12 +144,10 @@ class SignUpAPIView(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.get(**request.data)
-        confirmation_code = str(uuid.uuid4())
-        user.confirmation_code = confirmation_code
         user.save()
         send_mail(
             subject='Код подтверждения для YAMDB',
-            message=confirmation_code,
+            message=user.confirmation_code,
             from_email="admin@admin.ru",
             recipient_list=[request.data.get('email')],
         )
@@ -154,5 +155,16 @@ class SignUpAPIView(APIView):
         return Response(request.data, status=status.HTTP_200_OK)
 
 
+# В процессе.
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = TokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        if not User.objects.filter(**request.data).exists():
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid():
+                return Response(serializer.errors,
+                                status=status.HTTP_404_NOT_FOUND)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(request.data, status=status.HTTP_200_OK)

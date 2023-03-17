@@ -4,7 +4,7 @@ from users.models import User
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'first_name', 'last_name', 'email', 'role', 'bio', 'confirmation_code')
+    list_display = ('id', 'username', 'email', 'role', 'bio')
     list_editable = ('role', 'email')
     search_fields = ('id', 'username',)
     list_filter = ('username',)

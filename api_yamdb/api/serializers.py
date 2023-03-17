@@ -87,6 +87,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return rate
 
 
+# В процессе.
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=ROLES, default='user')
 
@@ -102,6 +103,7 @@ class UserSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+# В процессе.
 class UserSelfSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -110,6 +112,7 @@ class UserSelfSerializer(serializers.ModelSerializer):
         read_only_fields = ('username', 'email', 'role')
 
 
+# В процессе.
 class AdminUserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -119,21 +122,20 @@ class AdminUserSerializer(serializers.ModelSerializer):
         )
 
 
+# В процессе.
 class SignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email')
 
     def create(self, validated_data):
-        confirmation_code = str(uuid.uuid4())
         if validated_data['username'] == 'me':
             error = {'username': ['Нельзя создать пользователя с username me']}
             raise exceptions.ValidationError(error)
-        user = User.objects.create_user(
-            confirmation_code=confirmation_code, **validated_data)
+        user = User.objects.create_user(**validated_data)
         send_mail(
             subject='Код подтверждения для YAMDB',
-            message=confirmation_code,
+            message='123',
             from_email="admin@admin.ru",
             recipient_list=[validated_data.get('email')]
         )
@@ -141,6 +143,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         return user
 
 
+# В процессе.
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)

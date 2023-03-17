@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+
+from datetime import datetime, timedelta
+import jwt
 
 
 USER = 'user'
@@ -16,6 +18,7 @@ ROLES = [
 
 
 class User(AbstractUser):
+    email = models.EmailField(db_index=True, unique=True)
     bio = models.TextField(
         verbose_name='Биография',
         help_text='Биография (о себе)',
@@ -29,15 +32,9 @@ class User(AbstractUser):
         choices=ROLES,
         default=USER,
     )
-    email = models.EmailField(
-        verbose_name='Электронная почта',
-        help_text='Электронная почта',
-        unique=True,
-    )
-    confirmation_code = models.CharField(
-        max_length=32,
-        blank=True,
-    )
+
+    def __str__(self):
+        return self.email
 
     @property
     def is_admin(self):
@@ -47,12 +44,25 @@ class User(AbstractUser):
     def is_moderator(self):
         return self.role == MODERATOR
 
+    @property
+    def confirmation_code(self):
+        return self._generate_jwt_token()
+
+    def _generate_jwt_token(self):
+        dt = datetime.utcnow() + timedelta(days=1)
+
+        confirmation_code = jwt.encode(
+            {
+                'id': self.pk,
+                'exp': int(dt.strftime('%f')),
+            },
+            settings.SECRET_KEY,
+            algorithm='HS256',
+        )
+
+        return confirmation_code
+
     class Meta:
         ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-
-    def __str__(self):
-        if self.username:
-            return self.username
-        return self.email
