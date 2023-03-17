@@ -4,7 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets, status
+from rest_framework import filters, viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
@@ -33,28 +33,26 @@ class TitleFilter(django_filters.FilterSet):
         fields = '__all__'
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class GetPostDelete(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    lookup_field = 'slug'
+    permission_classes = (IsAdmin | ReadOnly,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('name',)
+
+
+class CategoryViewSet(GetPostDelete):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdmin | ReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-'''
-    def perform_destroy(self, instance):
-        if not self.request.user.is_staff:
-            raise PermissionDenied("You are not allowed to delete this object.")
-        instance.delete()
-'''
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(GetPostDelete):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdmin | ReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -119,7 +117,8 @@ class UserViewSet(viewsets.ModelViewSet):
             request.user, data=request.data, partial=True
         )
         if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
         if serializer.validated_data.get('role'):
             serializer.validated_data['role'] = request.user.role
@@ -132,7 +131,8 @@ class SignUpView(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
         user, mail = User.objects.get_or_create(
