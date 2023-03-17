@@ -75,6 +75,10 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    review = serializers.SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
@@ -113,11 +117,11 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return data
 
-    def validate_score(self, rate):
-        if rate < 1 or rate > 10:
+    def validate_score(self, score):
+        if score < 1 or score > 10:
             raise serializers.ValidationError(
                 'Рейтинг произведения должен быть от 1 до 10')
-        return rate
+        return score
 
 
 class UserSerializer(serializers.ModelSerializer):
