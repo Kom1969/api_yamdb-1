@@ -118,7 +118,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return data
 
-    def validate_rate(self, rate):
+    def validate_score(self, rate):
         if rate < 1 or rate > 10:
             raise serializers.ValidationError(
                 'Рейтинг произведения должен быть от 1 до 10')
