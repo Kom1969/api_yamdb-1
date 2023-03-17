@@ -44,7 +44,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     search_fields = ('name',)
 
 
