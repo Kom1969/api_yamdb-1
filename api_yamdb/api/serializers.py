@@ -1,14 +1,9 @@
-import uuid
-
 from django.db.models import Avg
-from django.core.mail import send_mail
 from rest_framework import serializers, exceptions
-from rest_framework.relations import SlugRelatedField
-from django.conf import settings
 from rest_framework.validators import UniqueValidator
 from reviews.models import Category, Genre, Title, Review, Comment
-from users.models import User, ROLES
-from api.validators import validate_username
+from users.models import User
+from api.validators import username_validator, signup_validator
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -125,64 +120,45 @@ class ReviewSerializer(serializers.ModelSerializer):
         return rate
 
 
-# В процессе.
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.ChoiceField(choices=ROLES, default='user')
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role')
-
-    def create(self, validated_data):
-        if validated_data['username'] == 'me':
-            error = {'username': ['Нельзя создать пользователя с username me']}
-            raise exceptions.ValidationError(error)
-        return super().create(validated_data)
-
-
-# В процессе.
-class UserSelfSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role')
-        read_only_fields = ('username', 'email', 'role')
-
-
-# В процессе.
-class AdminUserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
-        )
-
-
-# В процессе.
-class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
         required=True,
         validators=[
-            validate_username,
+            username_validator,
             UniqueValidator(queryset=User.objects.all()),
         ]
     )
 
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
         lookup_field = 'username'
 
 
-# В процессе.
-class TokenSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
         required=True,
+        validators=[username_validator],
     )
+    email = serializers.EmailField(max_length=254)
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+        validators = [signup_validator]
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
 
     class Meta:

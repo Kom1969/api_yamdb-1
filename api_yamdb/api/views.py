@@ -1,18 +1,16 @@
-import uuid
 import django_filters
 
-from django.db import IntegrityError
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from rest_framework import filters, viewsets, mixins, status, serializers
-from rest_framework.decorators import api_view, permission_classes, action
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets, status
+from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Title, Review
 from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
@@ -20,8 +18,7 @@ from api.serializers import (CategorySerializer, GenreSerializer,
                              TitleSerializer, TitleCreateSerializer,
                              CommentSerializer,
                              ReviewSerializer, TokenSerializer,
-                             SignUpSerializer, AdminUserSerializer,
-                             UserSerializer, UserSelfSerializer)
+                             SignUpSerializer, UserSerializer)
 from users.models import User
 
 
@@ -92,57 +89,36 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-# В процессе.
 class UserViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
     queryset = User.objects.all()
-    serializer_class = AdminUserSerializer
     permission_classes = (IsAdmin,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
+    serializer_class = UserSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ('username',)
     lookup_field = 'username'
-    # lookup_value_regex = r'[\w\@\.\+\-]+'
 
     @action(
+        methods=('GET', 'PATCH'),
+        permission_classes=(IsAuthenticated,),
         detail=False,
-        methods=['get', 'patch'],
-        url_path='me',
-        url_name='me',
-        permission_classes=(IsAuthenticated,)
     )
-    def about(self, request):
-        serializer = UserSerializer(request.user)
-        if request.method == 'PATCH':
-            serializer = UserSerializer(
-                request.user,
-                data=request.data,
-                partial=True
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def me(self, request):
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
 
-
-# В процессе.
-class UserSelfView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        user = User.objects.get(username=request.user.username)
-        serializer = UserSelfSerializer(user)
-        return Response(serializer.data)
-
-    def patch(self, request):
-        user = User.objects.get(username=request.user.username)
-        serializer = UserSelfSerializer(user, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True
+        )
         if serializer.is_valid():
+            if serializer.validated_data.get('role'):
+                serializer.validated_data['role'] = request.user.role
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# В процессе.
 class SignUpView(APIView):
 
     def post(self, request):
@@ -155,19 +131,8 @@ class SignUpView(APIView):
                 username=username
             )
             confirmation_code = default_token_generator.make_token(user)
-            message = (
-                f'Ваш код: {confirmation_code}\n'
-                'Перейдите по адресу '
-                'http://127.0.0.1:8000/api/v1/auth/token/ и введите его '
-                'вместе со своим username'
-            )
-            send_mail(
-                'Завершение регистрации',
-                message,
-                'webmaster@localhost',
-                [email, ],
-                fail_silently=True
-            )
+            message = f'Код доступа к YaMDB: {confirmation_code}'
+            send_mail('Завершение регистрации', message, 'webmaster@localhost', (email,))
             return Response(
                 serializer.data,
                 status=status.HTTP_200_OK
@@ -175,44 +140,7 @@ class SignUpView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @api_view(['POST'])
-# def signup_user(request):
-#     serializer = SignUpSerializer(data=request.data)
-#     serializer.is_valid(raise_exception=True)
-#
-#     email = serializer.validated_data['email']
-#     username = serializer.validated_data['username']
-#     try:
-#         user, _ = User.objects.get_or_create(
-#             email=email,
-#             username=username
-#         )
-#     except IntegrityError:
-#         raise serializers.ValidationError('Такой пользователь уже существует')
-#
-#     confirmation_code = default_token_generator.make_token(user)
-#
-#     message = (
-#         f'Ваш код: {confirmation_code}\n'
-#         'Перейдите по адресу '
-#         'http://127.0.0.1:8000/api/v1/auth/token/ и введите его '
-#         'вместе со своим username'
-#     )
-#
-#     send_mail(
-#         'Завершение регистрации',
-#         message,
-#         'webmaster@localhost',
-#         [email, ],
-#         fail_silently=True
-#     )
-#     return Response(
-#         serializer.data,
-#         status=status.HTTP_200_OK
-#     )
-#
-
-class ObtainTokenView(APIView):
+class TokenView(APIView):
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
@@ -224,33 +152,10 @@ class ObtainTokenView(APIView):
             if default_token_generator.check_token(user, confirmation_code):
                 access = AccessToken.for_user(user)
                 return Response(
-                    {
-                        'token': f'Bearer {access}',
-                    },
+                    {'token': f'Bearer {access}'},
                     status=status.HTTP_201_CREATED
                 )
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
-
-# @api_view(['POST'])
-# def get_token(request):
-#     serializer = TokenSerializer(data=request.data)
-#     if serializer.is_valid():
-#         confirmation_code = serializer.validated_data['confirmation_code']
-#         username = serializer.validated_data['username']
-#         user = get_object_or_404(User, username=username)
-#
-#         if default_token_generator.check_token(user, confirmation_code):
-#             access = AccessToken.for_user(user)
-#             return Response(
-#                 {
-#                     'token': f'Bearer {access}',
-#                 },
-#                 status=status.HTTP_201_CREATED
-#             )
-#     return Response(
-#         serializer.errors,
-#         status=status.HTTP_400_BAD_REQUEST
-#     )
