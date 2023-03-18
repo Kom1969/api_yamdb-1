@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 
-from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
+from api.permissions import IsAdmin, IsModerator, IsAuthor, ReadOnly
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -76,7 +76,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdmin | IsModerator | IsAuthorOrReadOnly,)
+    permission_classes = (IsAdmin | IsModerator | IsAuthor | ReadOnly,)
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -89,7 +89,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAdmin | IsModerator | IsAuthorOrReadOnly,)
+    permission_classes = (IsAdmin | IsModerator | IsAuthor | ReadOnly,)
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
