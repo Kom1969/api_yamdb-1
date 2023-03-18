@@ -23,10 +23,10 @@ def signup_validator(data):
     username = data['username']
     if (User.objects.filter(email=email).exists()
             and not User.objects.filter(username=username).exists()):
-        raise ValidationError('s')
+        raise ValidationError('Попробуйте указать другую электронную почту.')
     if (not User.objects.filter(email=email).exists()
             and User.objects.filter(username=username).exists()):
-        raise ValidationError('s')
+        raise ValidationError('Попробуйте указать другой юзернейм.')
     return data
 
 
@@ -34,5 +34,6 @@ def score_validator(data):
     score = data['score']
     if not settings.REVIEW_MIN_SCORE < score <= settings.REVIEW_MAX_SCORE:
         raise ValidationError(
-            'Рейтинг произведения должен быть от 1 до 10')
+            'Рейтинг произведения должен быть от 1 до 10.'
+        )
     return data
