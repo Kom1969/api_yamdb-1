@@ -50,10 +50,11 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
+    rating = serializers.SerializerMethodField()
 
+    @staticmethod
     def get_rating(self):
         rating = self.reviews.aggregate(Avg('score')).get('score__avg')
-        print(rating)
         return round(rating, settings.RATING_ACCURACY)
 
     class Meta:
