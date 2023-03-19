@@ -1,4 +1,3 @@
-import django_filters
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -12,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 
+from api.filters import TitleFilter
 from api.permissions import IsAdmin, IsModerator, IsAuthor, ReadOnly
 from api.serializers import (
     CategorySerializer,
@@ -20,23 +20,12 @@ from api.serializers import (
     ReviewSerializer,
     SignUpSerializer,
     TokenSerializer,
-    TitleSerializer,
+    TitleReadSerializer,
     TitleCreateSerializer,
     UserSerializer
 )
 from reviews.models import Category, Genre, Title, Review
 from users.models import User
-
-
-class TitleFilter(django_filters.FilterSet):
-    genre = django_filters.CharFilter(field_name='genre__slug')
-    category = django_filters.CharFilter(field_name='category__slug')
-    year = django_filters.NumberFilter(field_name='year')
-    name = django_filters.CharFilter(field_name='name', lookup_expr='contains')
-
-    class Meta:
-        model = Title
-        fields = '__all__'
 
 
 class GetPostDelete(
@@ -71,7 +60,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH', 'PUT'):
             return TitleCreateSerializer
-        return TitleSerializer
+        return TitleReadSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

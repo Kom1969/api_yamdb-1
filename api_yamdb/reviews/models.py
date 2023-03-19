@@ -1,3 +1,5 @@
+from django.db.models import Avg
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -5,39 +7,71 @@ from users.models import User
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(unique=True)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название')
+    slug = models.SlugField(
+        unique=True,
+        verbose_name='Псевдоним')
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self):
         return self.name
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(unique=True)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название')
+    slug = models.SlugField(
+        unique=True,
+        verbose_name='Псевдоним')
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self):
         return self.name
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=256)
-    year = models.IntegerField(blank=True)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название')
+    year = models.IntegerField(
+        blank=True,
+        verbose_name='Год')
     description = models.CharField(
         max_length=1024,
         null=True,
         blank=True,
+        verbose_name='Описание'
     )
     genre = models.ManyToManyField(
         Genre,
         through='GenreTitle',
-        related_name='genre')
+        related_name='genre',
+        verbose_name='Жанр')
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='category')
+        related_name='category',
+        verbose_name='Категория')
+
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+
+    @property
+    def rating(self):
+        rating = self.reviews.aggregate(Avg('score')).get('score__avg')
+        return round(rating, settings.RATING_ACCURACY)
 
     def __str__(self):
         return self.name
@@ -46,11 +80,13 @@ class Title(models.Model):
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
         'Genre',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Жанр'
     )
     title = models.ForeignKey(
         'Title',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Произведение'
     )
 
     def __str__(self):

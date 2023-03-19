@@ -1,5 +1,5 @@
+import datetime
 import re
-from django.conf import settings
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -36,5 +36,14 @@ def score_validator(data):
     if not settings.REVIEW_MIN_SCORE < score <= settings.REVIEW_MAX_SCORE:
         raise ValidationError(
             'Рейтинг произведения должен быть от 1 до 10.'
+        )
+    return data
+
+
+def year_validator(data):
+    year = data['year']
+    if year >= datetime.datetime.now().year:
+        raise ValidationError(
+            'Год выпуска произведения должен быть меньше текущего.'
         )
     return data

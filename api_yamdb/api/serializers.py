@@ -1,11 +1,11 @@
 from django.conf import settings
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from api.validators import (username_validator,
                             signup_validator,
-                            score_validator)
+                            score_validator,
+                            year_validator)
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
 
@@ -13,13 +13,13 @@ from users.models import User
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id', )
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ('id', )
 
 
 class ObjectField(serializers.SlugRelatedField):
@@ -38,33 +38,21 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     category = ObjectField(
         slug_field='slug',
         queryset=Category.objects.all(),
-        # many=False
     )
 
     class Meta:
         model = Title
-        fields = (
-            'id', 'name', 'year', 'description', 'genre', 'category'
-        )
+        fields = '__all__'
+        validators = [year_validator]
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleReadSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
-    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
-        )
+        fields = '__all__'
         model = Title
-
-    @staticmethod
-    def get_rating(obj):
-        rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
-        if rating is None:
-            return rating
-        return round(rating, 1)
 
 
 class CommentSerializer(serializers.ModelSerializer):
