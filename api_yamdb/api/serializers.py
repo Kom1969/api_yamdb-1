@@ -44,7 +44,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-        validators = [year_validator]
+        validators = [year_validator, ]
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
@@ -55,7 +55,9 @@ class TitleReadSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_rating(self):
         rating = self.reviews.aggregate(Avg('score')).get('score__avg')
-        return round(rating, settings.RATING_ACCURACY)
+        if rating:
+            rating = round(rating, settings.RATING_ACCURACY)
+        return rating
 
     class Meta:
         fields = '__all__'
