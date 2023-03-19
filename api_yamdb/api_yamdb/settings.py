@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pathlib import Path
 
 
@@ -10,6 +10,8 @@ REVIEW_MIN_SCORE = 1
 REVIEW_MAX_SCORE = 10
 USERNAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
+RATING_ACCURACY = 1
+MAX_YEAR = datetime.now().year
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -51,6 +53,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'api_yamdb.urls'
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
+CSV_DIR = BASE_DIR / 'static/data'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
