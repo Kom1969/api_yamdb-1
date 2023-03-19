@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from pathlib import Path
 
 
@@ -11,6 +11,7 @@ REVIEW_MAX_SCORE = 10
 USERNAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
 RATING_ACCURACY = 1
+MAX_YEAR = datetime.now().year
 
 
 # SECURITY WARNING: keep the secret key used in production secret!

@@ -43,6 +43,7 @@ class Title(models.Model):
         max_length=256,
         verbose_name='Название')
     year = models.IntegerField(
+        validators=[MaxValueValidator(settings.MAX_YEAR)],
         blank=True,
         verbose_name='Год')
     description = models.CharField(

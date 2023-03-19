@@ -1,4 +1,3 @@
-import datetime
 import re
 
 from django.conf import settings
@@ -42,7 +41,7 @@ def score_validator(data):
 
 def year_validator(data):
     year = data['year']
-    if year >= datetime.datetime.now().year:
+    if year >= settings.MAX_YEAR:
         raise ValidationError(
             'Год выпуска произведения должен быть меньше текущего.'
         )

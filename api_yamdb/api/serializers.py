@@ -44,7 +44,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-        validators = [year_validator, ]
+        validators = [year_validator]
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
