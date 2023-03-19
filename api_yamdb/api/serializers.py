@@ -5,8 +5,7 @@ from rest_framework.validators import UniqueValidator
 
 from api.validators import (username_validator,
                             signup_validator,
-                            score_validator,
-                            year_validator)
+                            score_validator, )
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
 
@@ -44,7 +43,7 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-        validators = [year_validator]
+        # validators = [year_validator]
 
 
 class TitleReadSerializer(serializers.ModelSerializer):

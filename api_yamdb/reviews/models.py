@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
+from api.validators import year_validator
 
 
 class Genre(models.Model):
@@ -43,7 +44,7 @@ class Title(models.Model):
         max_length=256,
         verbose_name='Название')
     year = models.IntegerField(
-        validators=[MaxValueValidator(settings.MAX_YEAR)],
+        validators=[year_validator],
         blank=True,
         verbose_name='Год')
     description = models.CharField(

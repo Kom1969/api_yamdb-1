@@ -40,7 +40,7 @@ def score_validator(data):
 
 
 def year_validator(data):
-    year = data['year']
+    year = data
     if year >= settings.MAX_YEAR:
         raise ValidationError(
             'Год выпуска произведения должен быть меньше текущего.'
