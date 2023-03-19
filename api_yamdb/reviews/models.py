@@ -1,5 +1,5 @@
-from django.db.models import Avg
 from django.conf import settings
+from django.contrib.postgres.indexes import BrinIndex
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -63,15 +63,20 @@ class Title(models.Model):
         blank=True,
         related_name='category',
         verbose_name='Категория')
+    rating = models.DecimalField(
+        null=True,
+        blank=True,
+        max_digits=2,
+        decimal_places=settings.RATING_ACCURACY,
+        verbose_name='Рейтинг'
+    )
 
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-
-    @property
-    def rating(self):
-        rating = self.reviews.aggregate(Avg('score')).get('score__avg')
-        return round(rating, settings.RATING_ACCURACY)
+        indexes = (
+            BrinIndex(fields=['category', 'year', 'name']),
+        )
 
     def __str__(self):
         return self.name

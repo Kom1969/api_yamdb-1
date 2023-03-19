@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -49,6 +50,11 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
+
+    def get_rating(self):
+        rating = self.reviews.aggregate(Avg('score')).get('score__avg')
+        print(rating)
+        return round(rating, settings.RATING_ACCURACY)
 
     class Meta:
         fields = '__all__'
