@@ -6,8 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Constants
 USER_ROLE_MAX_LENGTH = 13
-REVIEW_MIN_VALUE = 1
-REVIEW_MAX_VALUE = 10
+REVIEW_MIN_SCORE = 1
+REVIEW_MAX_SCORE = 10
 USERNAME_MAX_LENGTH = 150
 EMAIL_MAX_LENGTH = 254
 
@@ -102,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'UTC'
 
@@ -137,6 +137,7 @@ SIMPLE_JWT = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Представим, что это спрятано в .env
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_USE_TSL = False

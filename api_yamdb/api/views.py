@@ -4,7 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets, mixins, status
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
@@ -12,13 +12,19 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 
+from api.permissions import IsAdmin, IsModerator, IsAuthor, ReadOnly
+from api.serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    SignUpSerializer,
+    TokenSerializer,
+    TitleSerializer,
+    TitleCreateSerializer,
+    UserSerializer
+)
 from reviews.models import Category, Genre, Title, Review
-from api.permissions import IsAdmin, IsModerator, IsAuthorOrReadOnly, ReadOnly
-from api.serializers import (CategorySerializer, GenreSerializer,
-                             TitleSerializer, TitleCreateSerializer,
-                             CommentSerializer,
-                             ReviewSerializer, TokenSerializer,
-                             SignUpSerializer, UserSerializer)
 from users.models import User
 
 
@@ -51,6 +57,12 @@ class CategoryViewSet(GetPostDelete):
 
 
 class GenreViewSet(GetPostDelete):
+class CategoryViewSet(GetPostDelete):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(GetPostDelete):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
@@ -70,7 +82,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdmin | IsModerator | IsAuthorOrReadOnly,)
+    permission_classes = (IsAdmin | IsModerator | IsAuthor | ReadOnly,)
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -83,7 +95,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAdmin | IsModerator | IsAuthorOrReadOnly,)
+    permission_classes = (IsAdmin | IsModerator | IsAuthor | ReadOnly,)
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
@@ -117,8 +129,10 @@ class UserViewSet(viewsets.ModelViewSet):
             request.user, data=request.data, partial=True
         )
         if not serializer.is_valid():
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if serializer.validated_data.get('role'):
             serializer.validated_data['role'] = request.user.role
@@ -131,8 +145,10 @@ class SignUpView(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
         user, mail = User.objects.get_or_create(

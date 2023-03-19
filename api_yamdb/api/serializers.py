@@ -28,17 +28,6 @@ class ObjectField(serializers.SlugRelatedField):
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
-    '''
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all(),
-    )
-    genre = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Genre.objects.all(),
-        many=True
-    )
-    '''
     genre = ObjectField(
         slug_field='slug',
         queryset=Genre.objects.all(),
