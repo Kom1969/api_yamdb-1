@@ -1,13 +1,10 @@
+import re
+
 from django.conf import settings
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from api.validators import (
-    score_validator,
-    signup_validator,
-    username_validator,
-)
 from reviews.models import Category, Genre, Title, Review, Comment
 from users.models import User
 
@@ -105,16 +102,12 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
-        validators = [score_validator]
 
-    # Не могу допереть, как эту валидацию
-    # правильно перенести в validators.py
-    # из-за self
     def validate(self, data):
         if self.context['request'].method != 'POST':
             return data
 #
-        title_id = self.context['view'].kwargs.get('title_id')
+        title_id = self.context['request'].parser_context['kwargs']['title_id']
         author = self.context['request'].user
         if Review.objects.filter(
                 author=author, title=title_id).exists():
@@ -124,15 +117,19 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return data
 
+    def validate_score(self, value):
+        if not settings.REVIEW_MIN_SCORE < value <= settings.REVIEW_MAX_SCORE:
+            raise serializers.ValidationError(
+                'Рейтинг произведения должен быть от 1 до 10.'
+            )
+        return value
+
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
-        validators=[
-            username_validator,
-            UniqueValidator(queryset=User.objects.all()),
-        ]
+        validators=[UniqueValidator(queryset=User.objects.all())],
     )
 
     class Meta:
@@ -147,28 +144,70 @@ class UserSerializer(serializers.ModelSerializer):
         )
         lookup_field = 'username'
 
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError(
+                'Использование юзернейма "me" запрещено.'
+            )
+
+        if not re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,150}$', value):
+            raise serializers.ValidationError(
+                'Вы не можете использовать спецсимволы в юзернейме.'
+            )
+        return value
+
 
 class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
-        validators=[username_validator],
     )
     email = serializers.EmailField(max_length=settings.EMAIL_MAX_LENGTH)
 
     class Meta:
         model = User
         fields = ('username', 'email')
-        validators = [signup_validator]
+
+    def validate(self, data):
+        email = data['email']
+        username = data['username']
+        # Я этими двойными условиями обхожу вот эти два ассерта:
+        # 1) Проверьте, что повторный POST-запрос к `/api/v1/auth/signup/`
+        # с данными зарегистрированного пользователя возвращает ответ
+        # со статусом 200.
+        # 2) Проверьте, что POST-запрос к /api/v1/auth/signup/ с данными
+        # пользователя, созданного администратором, возвращает ответ
+        # со статусом 200.
+        # UniqueValidator и UniqueTogetherValidator не помогают
+        # с этими проверками.
+        if (User.objects.filter(email=email).exists()
+                and not User.objects.filter(username=username).exists()):
+            raise serializers.ValidationError(
+                'Попробуйте указать другую электронную почту.'
+            )
+        if (User.objects.filter(username=username).exists()
+                and not User.objects.filter(email=email).exists()):
+            raise serializers.ValidationError(
+                'Попробуйте указать другой юзернейм.'
+            )
+        return data
+
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError(
+                'Использование юзернейма "me" запрещено.'
+            )
+
+        if not re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,150}$', value):
+            raise serializers.ValidationError(
+                'Вы не можете использовать спецсимволы в юзернейме.'
+            )
+        return value
 
 
-class TokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150, required=True)
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(
+        max_length=settings.USERNAME_MAX_LENGTH,
+        required=True,
+    )
     confirmation_code = serializers.CharField(required=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'confirmation_code'
-        )
