@@ -57,12 +57,6 @@ class CategoryViewSet(GetPostDelete):
 
 
 class GenreViewSet(GetPostDelete):
-class CategoryViewSet(GetPostDelete):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class GenreViewSet(GetPostDelete):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
