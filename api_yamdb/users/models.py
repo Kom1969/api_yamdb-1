@@ -32,7 +32,7 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-    # Не могу допереть, как тут строки заменить,
+    # Не могу допереть, как тут строки заменить
     # User.Roles.ADMIN не работает.
     @property
     def is_admin(self):
