@@ -4,7 +4,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from reviews.models import Category, Genre, Title, Review, Comment
+from reviews.models import Category, Comment, Genre, Title, Review
 from users.models import User
 
 
@@ -58,43 +58,44 @@ class TitleReadSerializer(serializers.ModelSerializer):
     rating = serializers.ReadOnlyField()
 
     class Meta:
-        fields = '__all__'
         model = Title
+        fields = '__all__'
 
 
 class CommentSerializer(serializers.ModelSerializer):
     review = serializers.SlugRelatedField(
         slug_field='text',
-        read_only=True
+        read_only=True,
     )
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
+        slug_field='username',
+        read_only=True,
     )
 
     class Meta:
-        fields = '__all__'
         model = Comment
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True,
         slug_field='username',
-        default=serializers.CurrentUserDefault()
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
     )
     title = serializers.SlugRelatedField(
         slug_field='name',
-        read_only=True
+        read_only=True,
     )
 
     class Meta:
-        fields = '__all__'
         model = Review
+        fields = '__all__'
 
     def validate(self, data):
         if self.context['request'].method != 'POST':
             return data
-#
+
         title_id = self.context['request'].parser_context['kwargs']['title_id']
         author = self.context['request'].user
         if Review.objects.filter(

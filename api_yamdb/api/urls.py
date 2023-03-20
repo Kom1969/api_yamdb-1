@@ -9,7 +9,7 @@ from api.views import (
     TitleViewSet,
     UserViewSet,
     SignUpView,
-    TokenView
+    TokenView,
 )
 
 
@@ -18,14 +18,21 @@ v1_router = DefaultRouter()
 v1_router.register('categories', CategoryViewSet, basename='category')
 v1_router.register('genres', GenreViewSet, basename='genre')
 v1_router.register('titles', TitleViewSet, basename='title')
-v1_router.register(r'^titles/(?P<title_id>\d+)/reviews', ReviewViewSet,
-                   basename='reviews')
+v1_router.register(
+    r'^titles/(?P<title_id>\d+)/reviews',
+    ReviewViewSet,
+    basename='reviews',
+)
 v1_router.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
-    CommentViewSet, basename='comments')
-v1_router.register('users',
-                   UserViewSet,
-                   basename='users')
+    CommentViewSet,
+    basename='comments',
+)
+v1_router.register(
+    'users',
+    UserViewSet,
+    basename='users',
+)
 
 urlpatterns = [
     path('v1/auth/signup/', SignUpView.as_view(), name='signup'),

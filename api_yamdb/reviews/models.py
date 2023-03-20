@@ -134,8 +134,14 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         validators=[
-            MinValueValidator(settings.REVIEW_MIN_SCORE),
-            MaxValueValidator(settings.REVIEW_MAX_SCORE),
+            MinValueValidator(
+                settings.REVIEW_MIN_SCORE,
+                'Оценка должна быть выше 1',
+            ),
+            MaxValueValidator(
+                settings.REVIEW_MAX_SCORE,
+                'Оценка не может быть выше 10',
+            ),
         ],
         verbose_name='Оценка',
     )
@@ -145,8 +151,10 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = [
-            models.UniqueConstraint(fields=['author', 'title'],
-                                    name='unique_reviews')
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_reviews',
+            )
         ]
 
     def __str__(self):

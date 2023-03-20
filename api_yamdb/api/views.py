@@ -12,17 +12,17 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 
 from api.filters import TitleFilter
-from api.permissions import IsAdmin, IsModerator, IsAuthor, ReadOnly
+from api.permissions import IsAdmin, IsAuthor, IsModerator, ReadOnly
 from api.serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
     ReviewSerializer,
     SignUpSerializer,
-    TokenSerializer,
     TitleReadSerializer,
     TitleCreateSerializer,
-    UserSerializer
+    TokenSerializer,
+    UserSerializer,
 )
 from reviews.models import Category, Genre, Title, Review
 from users.models import User
@@ -32,7 +32,7 @@ class GetPostDelete(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
+    viewsets.GenericViewSet,
 ):
     lookup_field = 'slug'
     permission_classes = (IsAdmin | ReadOnly,)
@@ -55,7 +55,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdmin | ReadOnly,)
     pagination_class = LimitOffsetPagination
     filterset_class = TitleFilter
-    filter_backends = (DjangoFilterBackend, )
+    filter_backends = (DjangoFilterBackend,)
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PATCH', 'PUT'):
@@ -90,7 +90,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
+    http_method_names = ('get', 'post', 'head', 'delete', 'patch')
     queryset = User.objects.all()
     permission_classes = (IsAdmin,)
     serializer_class = UserSerializer

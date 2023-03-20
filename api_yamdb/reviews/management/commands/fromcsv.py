@@ -22,7 +22,7 @@ TABLES_DICT = {
     Title: 'titles.csv',
     Review: 'review.csv',
     Comment: 'comments.csv',
-    GenreTitle: 'genre_title.csv'
+    GenreTitle: 'genre_title.csv',
 }
 
 
