@@ -2,13 +2,21 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from users.validators import username_validator
 
 class User(AbstractUser):
+
     class Roles(models.Choices):
         USER = 'user'
         MODERATOR = 'moderator'
         ADMIN = 'admin'
 
+    username = models.CharField(
+        verbose_name='Юзернейм',
+        max_length=150,
+        unique=True,
+        validators=[username_validator],
+    )
     email = models.EmailField(db_index=True, unique=True)
     bio = models.TextField(
         verbose_name='Биография',
@@ -36,8 +44,8 @@ class User(AbstractUser):
     # User.Roles.ADMIN не работает.
     @property
     def is_admin(self):
-        return self.role == 'admin' or self.is_superuser
+        return self.role == User.Roles.ADMIN._value_ or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == User.Roles.MODERATOR._value_

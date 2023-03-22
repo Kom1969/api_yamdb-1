@@ -125,8 +125,7 @@ class SignUpView(APIView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         username = serializer.validated_data['username']
-        # Насколько я помню, неиспользуемые переменные называют так.
-        user, _created = User.objects.get_or_create(
+        user, _ = User.objects.get_or_create(
             email=email,
             username=username
         )

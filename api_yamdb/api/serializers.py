@@ -1,11 +1,11 @@
-import re
-
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Title, Review
+from reviews.validators import year_validator
 from users.models import User
+from users.validators import username_validator
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -39,17 +39,13 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Category.objects.all(),
     )
+    year = serializers.IntegerField(
+        validators=[year_validator],
+    )
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def validate_year(self, data):
-        if data >= settings.MAX_YEAR:
-            raise serializers.ValidationError(
-                'Год выпуска произведения должен быть меньше текущего.'
-            )
-        return data
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
@@ -118,7 +114,10 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())],
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            username_validator,
+        ],
     )
 
     class Meta:
@@ -133,23 +132,12 @@ class UserSerializer(serializers.ModelSerializer):
         )
         lookup_field = 'username'
 
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                'Использование юзернейма "me" запрещено.'
-            )
-
-        if not re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,150}$', value):
-            raise serializers.ValidationError(
-                'Вы не можете использовать спецсимволы в юзернейме.'
-            )
-        return value
-
 
 class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=settings.USERNAME_MAX_LENGTH,
         required=True,
+        validators=[username_validator],
     )
     email = serializers.EmailField(max_length=settings.EMAIL_MAX_LENGTH)
 
@@ -160,15 +148,6 @@ class SignUpSerializer(serializers.ModelSerializer):
     def validate(self, data):
         email = data['email']
         username = data['username']
-        # Я этими двойными условиями обхожу вот эти два ассерта:
-        # 1) Проверьте, что повторный POST-запрос к `/api/v1/auth/signup/`
-        # с данными зарегистрированного пользователя возвращает ответ
-        # со статусом 200.
-        # 2) Проверьте, что POST-запрос к /api/v1/auth/signup/ с данными
-        # пользователя, созданного администратором, возвращает ответ
-        # со статусом 200.
-        # UniqueValidator и UniqueTogetherValidator не помогают
-        # с этими проверками.
         if (User.objects.filter(email=email).exists()
                 and not User.objects.filter(username=username).exists()):
             raise serializers.ValidationError(
@@ -180,18 +159,6 @@ class SignUpSerializer(serializers.ModelSerializer):
                 'Попробуйте указать другой юзернейм.'
             )
         return data
-
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                'Использование юзернейма "me" запрещено.'
-            )
-
-        if not re.search(r'^[a-zA-Z][a-zA-Z0-9-_\.]{1,150}$', value):
-            raise serializers.ValidationError(
-                'Вы не можете использовать спецсимволы в юзернейме.'
-            )
-        return value
 
 
 class TokenSerializer(serializers.Serializer):

@@ -1,9 +1,9 @@
 from django.conf import settings
-from django.contrib.postgres.indexes import BrinIndex
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
 
+from reviews.validators import year_validator
 from users.models import User
 
 
@@ -47,10 +47,13 @@ class Title(models.Model):
     name = models.CharField(
         max_length=256,
         verbose_name='Название',
+        db_index=True,
     )
     year = models.IntegerField(
         blank=True,
         verbose_name='Год',
+        db_index=True,
+        validators=[year_validator],
     )
     description = models.CharField(
         max_length=1024,
@@ -71,6 +74,7 @@ class Title(models.Model):
         blank=True,
         related_name='category',
         verbose_name='Категория',
+        db_index=True,
     )
     rating = models.DecimalField(
         null=True,
@@ -83,9 +87,7 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-        indexes = (
-            BrinIndex(fields=['category', 'year', 'name']),
-        )
+
 
     def __str__(self):
         return self.name
@@ -95,7 +97,6 @@ class Title(models.Model):
         rating = self.reviews.aggregate(Avg('score')).get('score__avg')
         if rating:
             return round(rating, settings.RATING_ACCURACY)
-        return
 
 
 class GenreTitle(models.Model):
