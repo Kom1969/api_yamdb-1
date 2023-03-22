@@ -4,6 +4,7 @@ from django.db import models
 
 from users.validators import username_validator
 
+
 class User(AbstractUser):
 
     class Roles(models.Choices):
