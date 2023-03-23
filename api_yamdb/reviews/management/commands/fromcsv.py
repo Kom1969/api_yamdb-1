@@ -36,15 +36,18 @@ class Command(BaseCommand):
                 reader = csv.DictReader(f)
                 models = []
                 for data in reader:
-                    ids = [m.id for m in model.objects.all()]
                     if model == Title:
                         data['category'] = Category.objects.get(
-                            id=data['category'])
+                            id=data['category'],
+                        )
                     elif model in (Review, Comment):
                         data['author'] = User.objects.get(
-                            id=data['author'])
+                            id=data['author'],
+                        )
                     ids = [m.id for m in model.objects.all()]
                     if int(data['id']) not in ids:
                         models.append(model(**data))
                         ids.append(int(data['id']))
                 model.objects.bulk_create(models)
+                print(f'{base} successfully imported.')
+        print('Import from csv is complete.')

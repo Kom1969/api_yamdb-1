@@ -136,11 +136,11 @@ class Review(models.Model):
         validators=[
             MinValueValidator(
                 settings.REVIEW_MIN_SCORE,
-                'Оценка должна быть выше 1',
+                f'Оценка должна быть выше {settings.REVIEW_MIN_SCORE}',
             ),
             MaxValueValidator(
                 settings.REVIEW_MAX_SCORE,
-                'Оценка не может быть выше 10',
+                f'Оценка не может быть выше {settings.REVIEW_MAX_SCORE}',
             ),
         ],
         verbose_name='Оценка',

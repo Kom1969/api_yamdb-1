@@ -7,7 +7,8 @@ from users.validators import username_validator
 
 class User(AbstractUser):
 
-    class Roles(models.Choices):
+    # Оно живое!
+    class Roles(models.TextChoices):
         USER = 'user'
         MODERATOR = 'moderator'
         ADMIN = 'admin'
@@ -41,12 +42,10 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-    # Не могу допереть, как тут строки заменить
-    # User.Roles.ADMIN не работает.
     @property
     def is_admin(self):
-        return self.role == User.Roles.ADMIN._value_ or self.is_superuser
+        return self.role == User.Roles.ADMIN or self.is_superuser
 
     @property
     def is_moderator(self):
-        return self.role == User.Roles.MODERATOR._value_
+        return self.role == User.Roles.MODERATOR

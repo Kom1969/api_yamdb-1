@@ -1,17 +1,17 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Constants
-USER_ROLE_MAX_LENGTH = 13
-REVIEW_MIN_SCORE = 1
-REVIEW_MAX_SCORE = 10
-USERNAME_MAX_LENGTH = 150
-EMAIL_MAX_LENGTH = 254
-RATING_ACCURACY = 1
-MAX_YEAR = datetime.now().year
+USER_ROLE_MAX_LENGTH = 32  # Максимальная длина роли юзера
+USERNAME_MAX_LENGTH = 150  # Максимальная длина любого юзернейма
+EMAIL_MAX_LENGTH = 254  # Максимальная длина адреса эл. почты
+REVIEW_MIN_SCORE = 1  # Минимальное допустимое значение оценки тайтла
+REVIEW_MAX_SCORE = 10  # Максимальное допустимое значение оценки тайтла
+RATING_ACCURACY = 1  # Кол-во символов после запятой в оценке тайтла
+MAX_YEAR = datetime.now(tz=timezone.utc).year  # Тайтл должен быть выпущен.
 
 
 # SECURITY WARNING: keep the secret key used in production secret!

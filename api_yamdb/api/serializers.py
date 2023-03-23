@@ -98,14 +98,16 @@ class ReviewSerializer(serializers.ModelSerializer):
                 author=author, title=title_id).exists():
             raise serializers.ValidationError(
                 'Отзыв уже существует,'
-                'допустимо не более 1 отзыва на произведение.'
+                ' допустимо не более 1 отзыва на произведение.',
             )
         return data
 
     def validate_score(self, value):
         if not settings.REVIEW_MIN_SCORE < value <= settings.REVIEW_MAX_SCORE:
             raise serializers.ValidationError(
-                'Рейтинг произведения должен быть от 1 до 10.'
+                'Рейтинг произведения должен быть'
+                f' от {settings.REVIEW_MIN_SCORE}'
+                f' до {settings.REVIEW_MAX_SCORE}.',
             )
         return value
 
