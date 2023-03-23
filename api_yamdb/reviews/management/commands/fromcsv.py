@@ -1,6 +1,5 @@
 ﻿import csv
 
-from django.db.utils import IntegrityError
 from django.conf import settings
 from django.core.management import BaseCommand
 
@@ -30,27 +29,22 @@ class Command(BaseCommand):
     help = 'Load csv data'
 
     def handle(self, *args, **kwargs):
-        new_raws = 0
-        old_raws = 0
 
         for model, base in TABLES_DICT.items():
             with open(
                     f'{settings.CSV_DIR}/{base}', 'r', encoding='utf-8') as f:
-
                 reader = csv.DictReader(f)
+                models = []
                 for data in reader:
-                    try:
-                        if model == Title:
-                            data['category'] = Category.objects.all().filter(
-                                id=data['category'])[0]
-                        elif model in (Review, Comment):
-                            data['author'] = User.objects.all().filter(
-                                id=data['author'])[0]
-                        model.objects.create(**data)
-                        new_raws += 1
-                    except IntegrityError:
-                        old_raws += 1
-
-        print(
-            f'All data in your Data Base now!\n'
-            f'New entry: {new_raws}\nOld entry: {old_raws}')
+                    ids = [m.id for m in model.objects.all()]
+                    if model == Title:
+                        data['category'] = Category.objects.get(
+                            id=data['category'])
+                    elif model in (Review, Comment):
+                        data['author'] = User.objects.get(
+                            id=data['author'])
+                    ids = [m.id for m in model.objects.all()]
+                    if int(data['id']) not in ids:
+                        models.append(model(**data))
+                        ids.append(int(data['id']))
+                model.objects.bulk_create(models)
